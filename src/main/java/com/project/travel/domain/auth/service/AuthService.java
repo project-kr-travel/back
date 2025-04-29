@@ -3,8 +3,10 @@ package com.project.travel.domain.auth.service;
 import com.project.travel.common.error.exceptions.ConflictException;
 import com.project.travel.common.error.exceptions.UnauthorizedException;
 import com.project.travel.common.security.JwtTokenProvider;
+import com.project.travel.domain.auth.dto.request.AuthReissueRequest;
 import com.project.travel.domain.auth.dto.request.AuthSignInRequest;
 import com.project.travel.domain.auth.dto.request.AuthSignUpRequest;
+import com.project.travel.domain.auth.dto.response.AuthReissueResponse;
 import com.project.travel.domain.auth.dto.response.AuthSignInResponse;
 import com.project.travel.domain.auth.dto.response.AuthSignUpResponse;
 import com.project.travel.domain.auth.error.AuthErrorCode;
@@ -55,6 +57,23 @@ public class AuthService {
         authRedisRepository.saveRefreshToken(String.valueOf(user.getId()), refreshToken);
 
         return new AuthSignInResponse(accessToken, refreshToken);
+    }
+
+    public AuthReissueResponse reissue(AuthReissueRequest request) {
+        String userId = authRedisRepository.getUserIdFromRefreshToken(String.valueOf(request.refreshToken()))
+                .orElseThrow(() -> new UnauthorizedException(AuthErrorCode.INVALID_REFRESH_TOKEN));
+
+        User user = userService.findById(Long.parseLong(userId));
+
+        authRedisRepository.deleteRefreshToken(request.refreshToken());
+
+        String accessToken
+                = jwtTokenProvider.generateAccessToken(String.valueOf(user.getId()), user.getRole().getValue());
+        String refreshToken = jwtTokenProvider.generateRefreshToken();
+
+        authRedisRepository.saveRefreshToken(String.valueOf(user.getId()), refreshToken);
+
+        return new AuthReissueResponse(accessToken, refreshToken);
     }
 
     public void isSamePassword(String inputPassword, String userPassword) {

@@ -1,7 +1,9 @@
 package com.project.travel.domain.auth.controller;
 
+import com.project.travel.domain.auth.dto.request.AuthReissueRequest;
 import com.project.travel.domain.auth.dto.request.AuthSignInRequest;
 import com.project.travel.domain.auth.dto.request.AuthSignUpRequest;
+import com.project.travel.domain.auth.dto.response.AuthReissueResponse;
 import com.project.travel.domain.auth.dto.response.AuthSignInResponse;
 import com.project.travel.domain.auth.dto.response.AuthSignUpResponse;
 import com.project.travel.domain.auth.service.AuthService;
@@ -37,6 +39,17 @@ public class AuthController {
             @RequestBody @Valid AuthSignInRequest request
     ) {
         AuthSignInResponse response = authService.signIn(request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<AuthReissueResponse> reissue(
+            @RequestBody @Valid AuthReissueRequest request
+    ) {
+        AuthReissueResponse response = authService.reissue(request);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

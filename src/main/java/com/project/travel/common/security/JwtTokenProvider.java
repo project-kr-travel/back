@@ -13,15 +13,11 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.Date;
 
 @Slf4j
 @Component
 public class JwtTokenProvider {
-
-    private final long ACCESS_TOKEN_EXPIRED_TIME = Duration.ofMinutes(10).toMillis();
-    private final long REFRESH_TOKEN_EXPIRED_TIME = Duration.ofMinutes(30).toMillis();
 
     private final String BEARER_PREFIX = "Bearer ";
     private final SecretKey accessTokenSecretKey;
@@ -48,7 +44,7 @@ public class JwtTokenProvider {
                 .claim("id", userId)
                 .claim("role", role)
                 .issuedAt(now)
-                .expiration(new Date(now.getTime() + ACCESS_TOKEN_EXPIRED_TIME))
+                .expiration(new Date(now.getTime() + TokenType.ACCESS.getExpiration().toMillis()))
                 .signWith(accessTokenSecretKey)
                 .compact();
     }
@@ -58,7 +54,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .issuedAt(now)
-                .expiration(new Date(now.getTime() + REFRESH_TOKEN_EXPIRED_TIME))
+                .expiration(new Date(now.getTime() + TokenType.REFRESH.getExpiration().toMillis()))
                 .signWith(refreshTokenSecretKey)
                 .compact();
     }
